@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Clinics Table
+model Clinics {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  Users       Users[]
+
+  @@map("clinics")
+}
+
+// Roles Table
+model Roles {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Users     Users[]
+
+  @@map("roles")
+}
+
+// Users Table
+model Users {
+  id       Int    @id @default(autoincrement())
+  name     String
+  email    String @unique
+  password String
+
+  roleId   Int @map("role_id")
+  clinicId Int @map("clinic_id")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Roles         Roles           @relation(fields: [roleId], references: [id])
+  Clinics       Clinics         @relation(fields: [clinicId], references: [id])
+  Psychologists Psychologists[]
+
+  @@map("users")
+}
+
+// Psychologists Table
+model Psychologists {
+  UserId         Int    @id @map("user_id")
+  phoneNumber    String @unique
+  education      String
+  specialization String
+  experience     String
+  bio            String
+  address        String
+  instagram      String
+  sessionPrice   Float  @map("session_price")
+  licenseNumber  String @map("license_number")
+  photoUrl       String @map("photo_url")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Users        Users          @relation(fields: [UserId], references: [id])
+  Availability Availability[]
+  Sessions     Sessions[]
+
+  @@map("psychologists")
+}
+
+// Availability Table
+model Availability {
+  id           Int    @id @default(autoincrement())
+  psychologist Int    @map("psychologist_id")
+  day          String
+  startTime    String @map("start_time")
+  endTime      String @map("end_time")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Psychologists Psychologists @relation(fields: [psychologist], references: [UserId])
+
+  @@map("availability")
+}
+
+// Patients Table
+model Patients {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String   @unique
+  phoneNumber String   @unique
+  address     String
+  birthDate   DateTime @map("birth_date")
+  diagnosis   String
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Sessions  Sessions[]
+
+  @@map("patients")
+}
+
+// Sessions Table
+model Sessions {
+  id             Int      @id @default(autoincrement())
+  psychologistId Int      @map("psychologist_id")
+  patientId      Int      @map("patient_id")
+  date           DateTime
+  startTime      String   @map("start_time")
+  endTime        String   @map("end_time")
+  duration       Int
+  description    String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Psychologists Psychologists @relation(fields: [psychologistId], references: [UserId])
+  Patients      Patients      @relation(fields: [patientId], references: [id])
+
+  @@map("sessions")
+}
